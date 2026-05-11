@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import NewUsersPage from "@/components/dashboardComponent/newUsersPage";
 import UserCard from "@/components/dashboardComponent/userCard";
-import { adminService, User, Activity } from "@/lib/api/services/admin.service";
+import { adminService, User, Activity, DashboardStats } from "@/lib/api/services/admin.service";
 import { 
   Users, 
   UserCheck, 
@@ -39,7 +39,8 @@ const colorMap: Record<string, { color: string; bg: string }> = {
 };
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ total_user: 0, active_user: 0, inactive_user: 0 });
+  const [userStats, setUserStats] = useState({ total_user: 0, active_user: 0, inactive_user: 0 });
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,16 +48,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersData, activityData] = await Promise.all([
+        const [usersData, activityData, dashData] = await Promise.all([
           adminService.getUsers(),
-          adminService.getRecentActivity()
+          adminService.getRecentActivity(),
+          adminService.getDashboardData()
         ]);
 
-        setStats({
+        setUserStats({
           total_user: usersData.total_user,
           active_user: usersData.active_user,
           inactive_user: usersData.inactive_user
         });
+        setDashboardStats(dashData);
         setUsers(usersData.users || []);
         setRecentActivity(activityData || []);
       } catch (error) {
@@ -80,26 +83,45 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-[1480px] mx-auto">
       {/* Top Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
         <UserCard 
-          title="Total Users" 
-          value={stats.total_user.toLocaleString()} 
+          title="Total Parents" 
+          value={(dashboardStats?.total_parents || userStats.total_user).toLocaleString()} 
           icon={<Users className="w-6 h-6" />}  
-          iconColor="text-blue-400 bg-blue-100" 
+          iconColor="text-blue-500 bg-blue-50" 
         />
         <UserCard 
           title="Active Users" 
-          value={stats.active_user.toLocaleString()} 
+          value={(dashboardStats?.active_users || userStats.active_user).toLocaleString()} 
           icon={<UserCheck className="w-6 h-6" />}  
           iconColor="text-emerald-500 bg-emerald-50" 
         />
         <UserCard 
-          title="Inactive Users" 
-          value={stats.inactive_user.toLocaleString()} 
-          icon={<UserPlus className="w-6 h-6" />}  
-          iconColor="text-slate-400 bg-slate-100" 
+          title="Total Children" 
+          value={(dashboardStats?.total_children || 0).toLocaleString()} 
+          icon={<Baby className="w-6 h-6" />}  
+          iconColor="text-purple-500 bg-purple-50" 
+        />
+        <UserCard 
+          title="Messages Today" 
+          value={(dashboardStats?.today_total_messages || 0).toLocaleString()} 
+          icon={<BellRing className="w-6 h-6" />}  
+          iconColor="text-amber-500 bg-amber-50" 
+        />
+        <UserCard 
+          title="Monthly Expenses" 
+          value={`$${(dashboardStats?.current_month_expenses || 0).toLocaleString()}`} 
+          icon={<DollarSign className="w-6 h-6" />}  
+          iconColor="text-rose-500 bg-rose-50" 
+        />
+        <UserCard 
+          title="Upcoming Events (7d)" 
+          value={(dashboardStats?.upcoming_schedules_7days || 0).toLocaleString()} 
+          icon={<CalendarDays className="w-6 h-6" />}  
+          iconColor="text-indigo-500 bg-indigo-50" 
         />
       </div>
+
 
 
       {/* New User Section */}

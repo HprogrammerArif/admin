@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,50 +15,43 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { ChevronLeft, Download } from "lucide-react";
+import { ChevronLeft, Download, Loader2 } from "lucide-react";
+import { adminService, User, UserDetail } from "@/lib/api/services/admin.service";
 
 const UserDetailsPage = ({ params }: { params: { id: string } }) => {
   const router = useRouter();
+  const [data, setData] = useState<UserDetail | null>(null);
+  const [children, setChildren] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for the user
-  const user = {
-    name: "Alice Freeman",
-    role: "Father",
-    email: "alice.freeman@example.com",
-    number: "0292929293030",
-    joinDate: "Oct 24, 2023",
-    avatar: "https://i.pravatar.cc/150?u=1"
-  };
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const [userDetail, childrenData] = await Promise.all([
+          adminService.getUserDetails(params.id),
+          adminService.getChildrenByCoparent(params.id)
+        ]);
+        setData(userDetail);
+        setChildren(childrenData || []);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, [params.id]);
 
-  const coparent = {
-    name: "Alice Freeman",
-    role: "Mother",
-    email: "alice.freeman@example.com",
-    avatar: "https://i.pravatar.cc/150?u=2"
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
-  const children = [
-    { name: "Alex", avatar: "https://i.pravatar.cc/150?u=10" },
-    { name: "Jhon", avatar: "https://i.pravatar.cc/150?u=11" },
-    { name: "Jhon", avatar: "https://i.pravatar.cc/150?u=12" },
-    { name: "Jhon", avatar: "https://i.pravatar.cc/150?u=13" },
-  ];
-
-  const expanseData = [
-    { title: "Doctor bill", amount: "$34,295", payer: "alice.freeman@example.com", category: "Activity", split: "50/50", status: "Rejected", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", amount: "$34,295", payer: "alice.freeman@example.com", category: "Activity", split: "50/50", status: "Approve", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", amount: "$34,295", payer: "alice.freeman@example.com", category: "Activity", split: "50/50", status: "Approve", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", amount: "$34,295", payer: "alice.freeman@example.com", category: "Activity", split: "50/50", status: "Approve", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", amount: "$34,295", payer: "alice.freeman@example.com", category: "Activity", split: "50/50", status: "Pending", date: "Feb,26,2026, 7:54 am" },
-  ];
-
-  const documentData = [
-    { title: "Doctor bill", category: "Activity", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", category: "Activity", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", category: "Activity", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", category: "Activity", date: "Feb,26,2026, 7:54 am" },
-    { title: "Doctor bill", category: "Activity", date: "Feb,26,2026, 7:54 am" },
-  ];
+  const user = data?.user;
+  const coparent = children[0]?.co_parent; 
 
   return (
     <div className="space-y-6 max-w-[1480px] mx-auto pb-10">
@@ -78,49 +71,50 @@ const UserDetailsPage = ({ params }: { params: { id: string } }) => {
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-12 w-12 border border-slate-100">
-                  <AvatarImage src={user.avatar} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={`https://i.pravatar.cc/150?u=${user?.id}`} />
+                  <AvatarFallback>{user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-900">{user.name}</span>
+                    <span className="font-semibold text-slate-900">{user?.username}</span>
                     <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0 h-4 border-none uppercase">
-                      {user.role}
+                      {user?.is_staff ? "Staff" : "User"}
                     </Badge>
                   </div>
-                  <div className="text-sm text-slate-500">{user.email}</div>
+                  <div className="text-sm text-slate-500">{user?.email}</div>
                 </div>
               </div>
               <div className="text-center md:text-left">
-                <div className="text-xs text-slate-400 font-medium uppercase mb-1">Number</div>
-                <div className="text-sm text-slate-600 font-medium">{user.number}</div>
+                <div className="text-xs text-slate-400 font-medium uppercase mb-1">Status</div>
+                <div className="text-sm text-slate-600 font-medium">{user?.is_active ? "Active" : "Inactive"}</div>
               </div>
               <div className="text-right">
                 <div className="text-xs text-slate-400 font-medium uppercase mb-1">Join date</div>
-                <div className="text-sm text-slate-600 font-medium">{user.joinDate}</div>
+                <div className="text-sm text-slate-600 font-medium">
+                  {user?.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Coparent Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-800">Coparent</h3>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-10 w-10 border border-slate-100">
-                <AvatarImage src={coparent.avatar} />
-                <AvatarFallback>{coparent.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold text-slate-900">{coparent.name}</span>
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0 h-4 border-none uppercase">
-                    {coparent.role}
-                  </Badge>
+          {coparent && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-800">Coparent</h3>
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-10 w-10 border border-slate-100">
+                  <AvatarImage src={`https://i.pravatar.cc/150?u=${coparent.id}`} />
+                  <AvatarFallback>{coparent.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-slate-900">{coparent.username}</span>
+                  </div>
+                  <div className="text-sm text-slate-500">{coparent.email}</div>
                 </div>
-                <div className="text-sm text-slate-500">{coparent.email}</div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Children Section */}
           <div className="space-y-4">
@@ -129,12 +123,15 @@ const UserDetailsPage = ({ params }: { params: { id: string } }) => {
               {children.map((child, i) => (
                 <div key={i} className="flex items-center bg-blue-50/50 rounded-full pl-1 pr-3 py-1 border border-blue-100/50">
                   <Avatar className="h-6 w-6 border border-white">
-                    <AvatarImage src={child.avatar} />
-                    <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=child${child.id}`} />
+                    <AvatarFallback>{child.name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <span className="ml-2 text-xs font-medium text-blue-600">{child.name}</span>
                 </div>
               ))}
+              {children.length === 0 && (
+                <p className="text-sm text-slate-400">No children linked to this account.</p>
+              )}
             </div>
           </div>
 
@@ -154,115 +151,26 @@ const UserDetailsPage = ({ params }: { params: { id: string } }) => {
               </TabsList>
               
               <TabsContent value="expanse" className="mt-6">
-                <div className="rounded-xl border border-slate-100 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase px-6">Title</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Amount</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Payer</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Category</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Split method</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Status</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase text-right pr-6">Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {expanseData.map((item, i) => (
-                        <TableRow key={i} className="hover:bg-slate-50/30 border-slate-50">
-                          <TableCell className="px-6 text-slate-700 font-medium">{item.title}</TableCell>
-                          <TableCell className="text-slate-700 font-medium">{item.amount}</TableCell>
-                          <TableCell className="text-slate-400 text-sm">{item.payer}</TableCell>
-                          <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                          <TableCell className="text-slate-400 text-sm">{item.split}</TableCell>
-                          <TableCell>
-                            <Badge className={`
-                              ${item.status === 'Rejected' ? 'bg-red-600 text-white hover:bg-red-600' : ''}
-                              ${item.status === 'Approve' ? 'bg-emerald-600 text-white hover:bg-emerald-600' : ''}
-                              ${item.status === 'Pending' ? 'bg-amber-500 text-white hover:bg-amber-500' : ''}
-                              border-none font-medium px-3 py-0.5 rounded-full text-[10px]
-                            `}>
-                              {item.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-slate-400 text-xs text-right pr-6">{item.date}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
+                  Expense data will be integrated here.
                 </div>
               </TabsContent>
 
               <TabsContent value="document" className="mt-6">
-                <div className="rounded-xl border border-slate-100 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase px-6">Title</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Category</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase text-right pr-6">Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {documentData.map((item, i) => (
-                        <TableRow key={i} className="hover:bg-slate-50/30 border-slate-50">
-                          <TableCell className="px-6 text-slate-700 font-medium">{item.title}</TableCell>
-                          <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                          <TableCell className="text-slate-400 text-xs text-right pr-6">{item.date}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
+                  Document data will be integrated here.
                 </div>
               </TabsContent>
 
               <TabsContent value="milestone" className="mt-6">
-                <div className="rounded-xl border border-slate-100 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase px-6">Title</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Category</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase text-right pr-6">Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {documentData.map((item, i) => (
-                        <TableRow key={i} className="hover:bg-slate-50/30 border-slate-50">
-                          <TableCell className="px-6 text-slate-700 font-medium">{item.title}</TableCell>
-                          <TableCell className="text-slate-400 text-sm">{item.category}</TableCell>
-                          <TableCell className="text-slate-400 text-xs text-right pr-6">{item.date}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
+                  Milestone data will be integrated here.
                 </div>
               </TabsContent>
 
               <TabsContent value="schedule" className="mt-6">
-                <div className="rounded-xl border border-slate-100 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase px-6">Title</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Date</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Start time</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase">Category</TableHead>
-                        <TableHead className="font-semibold text-slate-500 text-xs uppercase text-right pr-6">Creator</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {[1,2,3].map((i) => (
-                        <TableRow key={i} className="hover:bg-slate-50/30 border-slate-50">
-                          <TableCell className="px-6 text-slate-700 font-medium">Doctor bill</TableCell>
-                          <TableCell className="text-slate-400 text-xs">Feb,26,2026, 7:54 am</TableCell>
-                          <TableCell className="text-slate-400 text-xs">1:30 a.m.</TableCell>
-                          <TableCell className="text-slate-400 text-sm">Medical</TableCell>
-                          <TableCell className="text-slate-400 text-sm text-right pr-6">Activity</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
+                  Schedule data will be integrated here.
                 </div>
               </TabsContent>
             </Tabs>
@@ -275,15 +183,20 @@ const UserDetailsPage = ({ params }: { params: { id: string } }) => {
         <CardContent className="p-8 space-y-6">
           <h3 className="text-lg font-semibold text-slate-800">Chat messages</h3>
           <div className="space-y-4">
-            {["Ai chat", "Person chat"].map((chat, i) => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
-                <span className="text-sm font-medium text-slate-600">{chat}</span>
-                <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium">
-                  <Download className="h-3 w-3 mr-2" />
-                  Export pdf
-                </Button>
-              </div>
-            ))}
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
+              <span className="text-sm font-medium text-slate-600">Ai chat</span>
+              <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium">
+                <Download className="h-3 w-3 mr-2" />
+                Export pdf
+              </Button>
+            </div>
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
+              <span className="text-sm font-medium text-slate-600">Person chat</span>
+              <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium">
+                <Download className="h-3 w-3 mr-2" />
+                Export pdf
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -292,3 +205,4 @@ const UserDetailsPage = ({ params }: { params: { id: string } }) => {
 };
 
 export default UserDetailsPage;
+

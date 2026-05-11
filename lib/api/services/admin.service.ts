@@ -28,7 +28,39 @@ export interface Activity {
   icon: string;
 }
 
+export interface DashboardStats {
+  total_parents: number;
+  total_children: number;
+  today_total_messages: number;
+  active_users: number;
+  current_month_expenses: number;
+  upcoming_schedules_7days: number;
+}
+
+export interface UserDetail {
+  user: User;
+  stats?: any;
+  preferences?: any;
+}
+
+export interface ContentInfo {
+  id: number;
+  title?: string;
+  name?: string;
+  content?: string;
+  description?: string;
+  logo?: string;
+  image?: string;
+}
+
+export interface AIPrompt {
+  name: string;
+  prompt: string;
+  description?: string;
+}
+
 export const adminService = {
+  // Dashboard & Stats
   getUsers: async (): Promise<UsersResponse> => {
     const response = await api.get<UsersResponse>('auth/admin/users/');
     return response.data;
@@ -39,9 +71,86 @@ export const adminService = {
     return response.data;
   },
 
-  // Example of other potential methods
-  getUserDetails: async (id: string | number): Promise<User> => {
+  getDashboardData: async (): Promise<DashboardStats> => {
+    const response = await api.get<DashboardStats>('core/dashboard/');
+    return response.data;
+  },
+
+  // User Management
+  getUserDetails: async (id: string | number): Promise<UserDetail> => {
+    const response = await api.get<UserDetail>(`core/admin/user-detail/?user_id=${id}`);
+    return response.data;
+  },
+
+  getUserById: async (id: string | number): Promise<User> => {
     const response = await api.get<User>(`auth/admin/users/${id}/`);
+    return response.data;
+  },
+
+  updateUser: async (id: string | number, data: Partial<User>): Promise<User> => {
+    const response = await api.patch<User>(`auth/admin/users/${id}/`, data);
+    return response.data;
+  },
+
+  deleteUser: async (id: string | number): Promise<void> => {
+    await api.delete(`auth/admin/users/${id}/`);
+  },
+
+  // Child Data
+  getChildrenByCoparent: async (userId: string | number): Promise<any[]> => {
+    const response = await api.get<any[]>(`core/admin/children-by-coparent/?user_id=${userId}`);
+    return response.data;
+  },
+
+  getChildData: async (childId: string | number): Promise<any> => {
+    const response = await api.get<any>(`core/admin/child-data/?child_id=${childId}`);
+    return response.data;
+  },
+
+  // Content Management
+  getPrivacyInfo: async (): Promise<ContentInfo[]> => {
+    const response = await api.get<ContentInfo[]>('about/admin/legal-privacy-info/');
+    return response.data;
+  },
+
+  updatePrivacyInfo: async (id: number, data: FormData | any): Promise<ContentInfo> => {
+    const response = await api.put<ContentInfo>(`about/admin/legal-privacy-info/${id}/`, data);
+    return response.data;
+  },
+
+  getAboutInfo: async (): Promise<ContentInfo[]> => {
+    const response = await api.get<ContentInfo[]>('about/admin/about-info/');
+    return response.data;
+  },
+
+  updateAboutInfo: async (id: number, data: FormData | any): Promise<ContentInfo> => {
+    const response = await api.put<ContentInfo>(`about/admin/about-info/${id}/`, data);
+    return response.data;
+  },
+
+  getOnboardingInfo: async (): Promise<ContentInfo[]> => {
+    const response = await api.get<ContentInfo[]>('about/admin/onboarding-info/');
+    return response.data;
+  },
+
+  // AI Prompts
+  getAIPrompts: async (): Promise<AIPrompt[]> => {
+    const response = await api.get<AIPrompt[]>('chat/prompts/');
+    return response.data;
+  },
+
+  getAIPromptByName: async (name: string): Promise<AIPrompt> => {
+    const response = await api.get<AIPrompt>(`chat/prompts/${name}/`);
+    return response.data;
+  },
+
+  deleteAIPrompt: async (name: string): Promise<void> => {
+    await api.delete(`chat/prompts/${name}/`);
+  },
+
+  exportAIChat: async (userId: string | number): Promise<any> => {
+    const response = await api.get(`core/export/ai-chat/?user_id=${userId}`);
     return response.data;
   }
 };
+
