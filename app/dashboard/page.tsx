@@ -16,6 +16,7 @@ import {
   FileText
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const iconMap: Record<string, any> = {
   "user-plus": UserPlus,
@@ -27,6 +28,7 @@ const iconMap: Record<string, any> = {
   "star": Star,
   "file": FileText
 };
+
 
 const colorMap: Record<string, { color: string; bg: string }> = {
   "child_profile_created": { color: "text-purple-500", bg: "bg-purple-50" },
@@ -83,7 +85,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-[1480px] mx-auto">
       {/* Top Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+      <div className="flex  flex-wrap gap-6">
         <UserCard 
           title="Total Parents" 
           value={(dashboardStats?.total_parents || userStats.total_user).toLocaleString()} 
@@ -138,8 +140,9 @@ export default function DashboardPage() {
             View all
           </Link>
         </div>
+ 
         <div className="p-6">
-          <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
             {recentActivity.map((activity, index) => {
               const Icon = iconMap[activity.icon] || Star;
               const styles = colorMap[activity.type] || { color: "text-slate-500", bg: "bg-slate-50" };

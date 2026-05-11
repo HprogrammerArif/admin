@@ -4,13 +4,31 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  full_name?: string;
   first_name?: string;
   last_name?: string;
+  role?: string;
+  gender?: string;
+  phone_number?: string | null;
+  avatar?: string;
   is_active: boolean;
   is_staff: boolean;
   is_superuser: boolean;
   date_joined: string;
   last_login: string | null;
+}
+
+export interface Child {
+  id: number;
+  full_name: string;
+  photo: string;
+}
+
+export interface UserDetail {
+  user: User;
+  co_parents: User[];
+  children: Child[];
+  stats?: any;
 }
 
 export interface UsersResponse {
@@ -37,11 +55,7 @@ export interface DashboardStats {
   upcoming_schedules_7days: number;
 }
 
-export interface UserDetail {
-  user: User;
-  stats?: any;
-  preferences?: any;
-}
+
 
 export interface ContentInfo {
   id: number;
