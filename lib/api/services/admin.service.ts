@@ -53,6 +53,21 @@ export interface DashboardStats {
   active_users: number;
   current_month_expenses: number;
   upcoming_schedules_7days: number;
+  user_activity?: {
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+    }[];
+  };
+  expense_overview?: {
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+    }[];
+  };
+  recent_activity?: Activity[];
 }
 
 
@@ -85,8 +100,8 @@ export const adminService = {
     return response.data;
   },
 
-  getDashboardData: async (): Promise<DashboardStats> => {
-    const response = await api.get<DashboardStats>('core/dashboard/');
+  getDashboardData: async (period: string = '1 month'): Promise<DashboardStats> => {
+    const response = await api.get<DashboardStats>(`core/dashboard/?period=${period}`);
     return response.data;
   },
 
@@ -147,6 +162,11 @@ export const adminService = {
     return response.data;
   },
 
+  updateOnboardingInfo: async (id: number, data: FormData | any): Promise<ContentInfo> => {
+    const response = await api.put<ContentInfo>(`about/admin/onboarding-info/${id}/`, data);
+    return response.data;
+  },
+
   // AI Prompts
   getAIPrompts: async (): Promise<AIPrompt[]> => {
     const response = await api.get<AIPrompt[]>('chat/prompts/');
@@ -162,9 +182,26 @@ export const adminService = {
     await api.delete(`chat/prompts/${name}/`);
   },
 
-  exportAIChat: async (userId: string | number): Promise<any> => {
-    const response = await api.get(`core/export/ai-chat/?user_id=${userId}`);
-    return response.data;
+  exportAIChat: async (userId: string | number): Promise<void> => {
+    const response = await api.get(`core/export/ai-chat/?user_id=${userId}`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `ai-chat-${userId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  },
+
+  exportCoparentChat: async (userId: string | number, coParentId: string | number): Promise<void> => {
+    const response = await api.get(`core/export/coparent-chat/?user_id=${userId}&co_parent_id=${coParentId}`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `coparent-chat-${userId}-${coParentId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 };
 

@@ -8,19 +8,24 @@ const api = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
 // Add a request interceptor for auth tokens
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Skip authorization header for login and other public endpoints
+    const isPublicEndpoint = config.url?.includes('auth/login') || config.url?.includes('auth/register');
+    
+    if (!isPublicEndpoint) {
+      const token = Cookies.get('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
-
   (error) => {
     return Promise.reject(error);
   }
@@ -31,10 +36,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle global errors like 401 Unauthorized
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('auth/login');
+    
+    if (error.response?.status === 401 && !isLoginRequest) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('isAuthenticated');
-        window.location.href = '/';
+        localStorage.removeItem('user');
+        Cookies.remove('auth_token');
+        // Use replace to avoid back-button loops
+        window.location.replace('/');
       }
     }
     return Promise.reject(error);

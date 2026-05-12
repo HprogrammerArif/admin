@@ -12,8 +12,20 @@ import {
   FileText, 
   MessageSquare,
   Bell,
-  LogOut
+  LogOut,
+  User,
+  Settings,
+  ChevronDown
 } from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { cn } from "@/lib/utils";
 
@@ -109,27 +121,50 @@ export default function DashboardLayout({
             
             <div className="h-8 w-[1px] bg-slate-200 mx-2"></div>
 
-            <div className="flex items-center space-x-3">
-              <div className="text-right hidden sm:block">
+            <div className="flex items-center">
+              <div className="text-right hidden sm:block mr-3">
                 <p className="text-sm font-semibold text-slate-900 leading-none mb-1">{user?.username}</p>
                 <p className="text-xs text-slate-500 leading-none">{user?.email}</p>
               </div>
-              <Avatar className="w-9 h-9 cursor-pointer ring-2 ring-slate-100 hover:ring-slate-200 transition-all">
-                <AvatarImage src={`https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.username} />
-                <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
-                  {user?.username?.charAt(0).toUpperCase() || 'AD'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleLogout}
-                className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors ml-1"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center cursor-pointer group">
+                    <Avatar className="w-9 h-9 ring-2 ring-slate-100 group-hover:ring-blue-100 transition-all">
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.username} />
+                      <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
+                        {user?.username?.charAt(0).toUpperCase() || 'AD'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <ChevronDown className="w-4 h-4 ml-2 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-1 shadow-lg border-slate-100">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1 py-1">
+                      <p className="text-sm font-semibold leading-none">{user?.username}</p>
+                      <p className="text-xs leading-none text-slate-500">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer py-2 hover:bg-slate-50">
+                    <User className="mr-2 h-4 w-4 text-slate-500" />
+                    <span>My Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer py-2 hover:bg-slate-50">
+                    <Settings className="mr-2 h-4 w-4 text-slate-500" />
+                    <span>Account Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer py-2 text-red-600 focus:text-red-600 focus:bg-red-50" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

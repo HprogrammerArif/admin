@@ -53,6 +53,22 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const coParents = data?.co_parents || [];
   const children = data?.children || [];
 
+  const handleExportAI = async () => {
+    try {
+      await adminService.exportAIChat(id);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
+  const handleExportCoparent = async (cpId: number) => {
+    try {
+      await adminService.exportCoparentChat(id, cpId);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-[1480px] mx-auto pb-10">
       <button 
@@ -193,17 +209,36 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
               <span className="text-sm font-medium text-slate-600">Ai chat</span>
-              <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleExportAI}
+                className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium"
+              >
                 <Download className="h-3 w-3 mr-2" />
                 Export pdf
               </Button>
             </div>
             <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
               <span className="text-sm font-medium text-slate-600">Person chat</span>
-              <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium">
-                <Download className="h-3 w-3 mr-2" />
-                Export pdf
-              </Button>
+              {coParents.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {coParents.map(cp => (
+                    <Button 
+                      key={cp.id}
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleExportCoparent(cp.id)}
+                      className="bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100 h-8 text-xs font-medium"
+                    >
+                      <Download className="h-3 w-3 mr-2" />
+                      Chat with {cp.username} (PDF)
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-slate-400 italic">No co-parents available</span>
+              )}
             </div>
           </div>
         </CardContent>

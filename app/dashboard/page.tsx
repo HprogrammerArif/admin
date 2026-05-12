@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import NewUsersPage from "@/components/dashboardComponent/newUsersPage";
 import UserCard from "@/components/dashboardComponent/userCard";
 import { adminService, User, Activity, DashboardStats } from "@/lib/api/services/admin.service";
+
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Users, 
   UserCheck, 
@@ -46,6 +54,16 @@ export default function DashboardPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("1 month");
+
+  const fetchDashboardData = async (selectedPeriod: string) => {
+    try {
+      const dashData = await adminService.getDashboardData(selectedPeriod);
+      setDashboardStats(dashData);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,7 +71,7 @@ export default function DashboardPage() {
         const [usersData, activityData, dashData] = await Promise.all([
           adminService.getUsers(),
           adminService.getRecentActivity(),
-          adminService.getDashboardData()
+          adminService.getDashboardData(period)
         ]);
 
         setUserStats({
@@ -72,7 +90,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [period]);
 
   if (loading) {
     return (
@@ -84,6 +102,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 max-w-[1480px] mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Dashboard Overview</h2>
+          <p className="text-slate-500">Welcome back! Here's what's happening today.</p>
+        </div>
+       
+      </div>
+
       {/* Top Stats */}
       <div className="flex  flex-wrap gap-6">
         <UserCard 
@@ -124,7 +150,7 @@ export default function DashboardPage() {
         />
       </div>
 
-
+     
 
       {/* New User Section */}
       <NewUsersPage users={users} />
