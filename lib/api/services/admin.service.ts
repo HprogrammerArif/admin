@@ -117,7 +117,7 @@ export const adminService = {
   },
 
   updateUser: async (id: string | number, data: Partial<User>): Promise<User> => {
-    const response = await api.patch<User>(`auth/admin/users/${id}/`, data);
+    const response = await api.put<User>(`auth/admin/users/${id}/`, data);
     return response.data;
   },
 
