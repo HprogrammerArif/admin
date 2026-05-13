@@ -124,8 +124,7 @@ export default function ContentPage() {
   }
 
   return (
-    <div className="space-y-8 mx-auto pb-10 max-w-[1480px]">
-     
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
 
       {/* Legal & Privacy Section */}
       <section className="space-y-4">

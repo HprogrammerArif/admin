@@ -101,7 +101,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1480px] mx-auto">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Dashboard Overview</h2>

@@ -85,7 +85,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-[1480px] mx-auto pb-10">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
       {/* Ai prompts Section */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold text-slate-800 px-1">Ai prompts</h2>
@@ -124,52 +124,7 @@ export default function ChatPage() {
         </Card>
       </section>
 
-      {/* Chat messages Section */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-slate-800 px-1">Chat messages</h2>
-        <Card className="border-slate-200 shadow-sm overflow-hidden bg-white">
-          <CardContent className="p-8 space-y-8">
-            <div className="flex justify-end">
-              <div className="relative w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input 
-                  placeholder="Enter User ID to export" 
-                  className="pl-10 bg-slate-50/50 border-slate-100 rounded-full h-11"
-                  value={searchUserId}
-                  onChange={(e) => setSearchUserId(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm font-medium text-slate-600">Ai chat</span>
-                <Button 
-                  onClick={() => handleExport("ai")}
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-9 text-xs font-medium px-4 rounded-lg"
-                >
-                  <Download className="h-3.5 w-3.5 mr-2" />
-                  Export pdf
-                </Button>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm font-medium text-slate-600">Person chat</span>
-                <Button 
-                  onClick={() => handleExport("coparent")}
-                  variant="outline" 
-                  size="sm" 
-                  className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-9 text-xs font-medium px-4 rounded-lg"
-                >
-                  <Download className="h-3.5 w-3.5 mr-2" />
-                  Export pdf
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+    
 
       {/* Edit Prompt Dialog */}
       <Dialog open={!!editingPrompt} onOpenChange={(open) => !open && setEditingPrompt(null)}>
