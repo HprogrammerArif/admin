@@ -101,7 +101,7 @@ export default function DashboardLayout({
           {sidebarLinks.map((link) => {
             const isActive =
               link.href === "/dashboard"
-                ? pathname === "/dashboard"
+                ? pathname === "/dashboard/"
                 : pathname === link.href || pathname.startsWith(link.href + "/") || pathname.startsWith(link.href);
             const Icon = link.icon;
             return (
