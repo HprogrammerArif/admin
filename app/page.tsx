@@ -65,6 +65,7 @@ export default function Home() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={loading}
                   suppressHydrationWarning={true}
+                 
                 />
               </div>
               <div className="grid gap-2">

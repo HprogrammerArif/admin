@@ -25,12 +25,19 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   const [data, setData] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
+  const [childData, setChildData] = useState<any>(null);
+  const [fetchingChildData, setFetchingChildData] = useState(false);
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
         const userDetail = await adminService.getUserDetails(id);
         setData(userDetail);
+        // Automatically select the first child if available
+        if (userDetail?.children && userDetail.children.length > 0) {
+          setSelectedChildId(userDetail.children[0].id);
+        }
       } catch (error) {
         console.error("Error fetching user details:", error);
       } finally {
@@ -39,6 +46,23 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     };
     fetchAllData();
   }, [id]);
+
+  useEffect(() => {
+    const fetchChildDetails = async () => {
+      if (!selectedChildId) return;
+      
+      setFetchingChildData(true);
+      try {
+        const childDetails = await adminService.getChildData(selectedChildId);
+        setChildData(childDetails);
+      } catch (error) {
+        console.error("Error fetching child data:", error);
+      } finally {
+        setFetchingChildData(false);
+      }
+    };
+    fetchChildDetails();
+  }, [selectedChildId]);
 
 
   if (loading) {
@@ -70,68 +94,70 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1480px] mx-auto pb-10">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
       <button 
         onClick={() => router.back()}
-        className="flex items-center text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+        className="flex items-center text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors mb-4"
       >
-        <ChevronLeft className="h-4 w-4 mr-1" />
+        <ChevronLeft className="h-5 w-5 mr-1" />
         Go back
       </button>
 
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <CardContent className="p-8 space-y-10">
+      <Card className="border-none shadow-[0px_4px_20px_rgba(0,0,0,0.03)] rounded-3xl overflow-hidden bg-white">
+        <CardContent className="p-8 md:p-10 space-y-10">
           {/* User Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-800">User</h3>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-12 w-12 border border-slate-100 shadow-sm">
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-slate-800">User</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+              <div className="flex items-center space-x-4 col-span-2">
+                <Avatar className="h-14 w-14 border border-slate-100 shadow-sm">
                   <AvatarImage src={user?.avatar} />
                   <AvatarFallback>{user?.full_name?.charAt(0) || user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-slate-900 text-lg">{user?.full_name || user?.username}</span>
-                    <Badge variant="secondary" className="bg-blue-50 text-blue-600 text-[10px] px-2 py-0 h-4 border-none uppercase font-bold">
-                      {user?.role}
+                    <span className="font-bold text-slate-900 text-[15px]">{user?.full_name || user?.username}</span>
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 h-auto border-none font-medium">
+                      {user?.role || "Father"}
                     </Badge>
                   </div>
-                  <div className="text-sm text-slate-500">{user?.email}</div>
+                  <div className="text-[13px] text-blue-500">{user?.email}</div>
                 </div>
               </div>
-              <div className="text-center md:text-left bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
-                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">Gender</div>
-                <div className="text-sm text-slate-700 font-semibold">{user?.gender || "N/A"}</div>
+              <div className="flex flex-col">
+                <span className="text-[12px] text-slate-500 mb-1">Number</span>
+                <span className="text-[13px] text-slate-500">{user?.phone_number || "N/A"}</span>
               </div>
-              <div className="text-right">
-                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">Join date</div>
-                <div className="text-sm text-slate-700 font-semibold">
-                  {user?.date_joined ? new Date(user.date_joined).toLocaleDateString() : "N/A"}
-                </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] text-slate-500 mb-1">Join date</span>
+                <span className="text-[13px] text-slate-500">
+                  {user?.date_joined ? new Date(user.date_joined).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Coparent Section */}
           {coParents.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-800">Co-parents</h3>
-              <div className="space-y-4">
+            <div className="space-y-6 pt-4">
+              <h3 className="text-xl font-bold text-slate-800">Coparent</h3>
+              <div className="space-y-6">
                 {coParents.map((cp) => (
-                  <div key={cp.id} className="flex items-center space-x-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                    <Avatar className="h-10 w-10 border border-white shadow-sm">
-                      <AvatarImage src={cp.avatar} />
-                      <AvatarFallback>{cp.full_name?.charAt(0) || cp.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-slate-900">{cp.full_name || cp.username}</span>
-                        <Badge variant="outline" className="text-[10px] h-4 px-2 border-slate-200 text-slate-500 uppercase">
-                          {cp.role}
-                        </Badge>
+                  <div key={cp.id} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+                    <div className="flex items-center space-x-4 col-span-2">
+                      <Avatar className="h-14 w-14 border border-slate-100 shadow-sm">
+                        <AvatarImage src={cp.avatar} />
+                        <AvatarFallback>{cp.full_name?.charAt(0) || cp.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-slate-900 text-[15px]">{cp.full_name || cp.username}</span>
+                          <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 h-auto border-none font-medium">
+                            {cp.role || "Mother"}
+                          </Badge>
+                        </div>
+                        <div className="text-[13px] text-blue-500">{cp.email}</div>
                       </div>
-                      <div className="text-xs text-slate-500">{cp.email}</div>
                     </div>
                   </div>
                 ))}
@@ -140,87 +166,272 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           )}
 
           {/* Children Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-slate-800">Children ({children.length})</h3>
+          <div className="space-y-6 pt-4">
+            <h3 className="text-xl font-bold text-slate-800">Children {children.length}</h3>
             <div className="flex flex-wrap gap-3">
               {children.map((child) => (
-                <div key={child.id} className="flex items-center bg-white rounded-full pl-1 pr-4 py-1 border border-slate-200 shadow-sm hover:border-blue-200 transition-colors">
-                  <Avatar className="h-8 w-8 border border-slate-50">
+                <button 
+                  key={child.id} 
+                  onClick={() => setSelectedChildId(child.id)}
+                  className={`flex items-center rounded-full pl-1.5 pr-4 py-1.5 transition-all ${
+                    selectedChildId === child.id 
+                    ? "bg-blue-50/80 text-blue-600" 
+                    : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Avatar className="h-7 w-7 mr-2">
                     <AvatarImage src={child.photo} />
                     <AvatarFallback>{child.full_name?.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span className="ml-2 text-sm font-medium text-slate-700">{child.full_name}</span>
-                </div>
+                  <span className="text-[13px] font-medium">
+                    {child.full_name}
+                  </span>
+                </button>
               ))}
               {children.length === 0 && (
-                <p className="text-sm text-slate-400 italic">No children registered yet.</p>
+                <p className="text-[13px] text-slate-400">No children registered yet.</p>
               )}
             </div>
           </div>
 
 
           {/* Tabs Section */}
-          <div className="pt-4">
+          <div className="pt-6">
             <Tabs defaultValue="expanse" className="w-full">
-              <TabsList className="bg-transparent border-b border-slate-100 rounded-none w-full justify-start h-auto p-0 space-x-8">
-                {["expanse", "document", "milestone", "schedule"].map((tab) => (
+              <TabsList className="bg-transparent border-b border-slate-200 rounded-none w-full justify-start h-auto p-0 space-x-8 mb-6">
+                {[
+                  { id: "expanse", label: "Expanse" },
+                  { id: "document", label: "Document" },
+                  { id: "milestone", label: "Milestone" },
+                  { id: "schedule", label: "Shedule" }
+                ].map((tab) => (
                   <TabsTrigger 
-                    key={tab}
-                    value={tab} 
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-slate-800 data-[state=active]:bg-transparent text-slate-400 data-[state=active]:text-slate-800 capitalize font-medium px-0 py-2 transition-all"
+                    key={tab.id}
+                    value={tab.id} 
+                    className="rounded-none border-b-[3px] border-transparent data-[state=active]:border-slate-800 data-[state=active]:bg-transparent text-slate-500 data-[state=active]:text-slate-900 capitalize font-semibold px-0 py-3 transition-all text-[14px]"
                   >
-                    {tab}
+                    {tab.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
               
-              <TabsContent value="expanse" className="mt-6">
-                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
-                  Expense data will be integrated here.
+              {fetchingChildData ? (
+                <div className="flex flex-col items-center justify-center py-20 space-y-4 bg-[#FAFAFA] rounded-2xl">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                  <p className="text-sm text-slate-500">Loading child data...</p>
                 </div>
-              </TabsContent>
+              ) : !selectedChildId ? (
+                <div className="text-center py-20 text-slate-400 bg-[#FAFAFA] rounded-2xl">
+                  Select a child to view their data.
+                </div>
+              ) : (
+                <div className="bg-[#FAFAFA] rounded-[24px] p-6 overflow-x-auto">
+                  <TabsContent value="expanse" className="mt-0 outline-none">
+                    {childData?.expenses?.length > 0 ? (
+                      <Table className="min-w-[800px]">
+                        <TableHeader>
+                          <TableRow className="border-none hover:bg-transparent">
+                            <TableHead className="font-semibold text-slate-500 h-10">Title</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Amount</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Payer</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Category</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Split method</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Receipt</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Status</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-right">Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {childData.expenses.map((expense: any) => (
+                            <TableRow key={expense.id} className="border-none hover:bg-black/5">
+                              <TableCell className="font-medium text-slate-600 py-4">{expense.title}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">${expense.amount}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">{expense.payer_email}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">{expense.category}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">{expense.split_method}</TableCell>
+                              <TableCell className="text-center py-4">
+                                {expense.receipt_image ? (
+                                  <a href={expense.receipt_image} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-[13px] font-medium inline-flex items-center justify-center">
+                                    <Avatar className="h-8 w-8 rounded-md mr-2">
+                                      <AvatarImage src={expense.receipt_image} className="object-cover" />
+                                      <AvatarFallback className="rounded-md">Img</AvatarFallback>
+                                    </Avatar>
+                                    View
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-400 text-[13px]">N/A</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center py-4">
+                                <span className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-[11px] font-bold text-white ${
+                                  expense.status === 'Approved' ? 'bg-[#00B47A]' : expense.status === 'Pending' ? 'bg-[#FCA311]' : 'bg-[#E63946]'
+                                }`}>
+                                  {expense.status === 'Approved' ? 'Approve' : expense.status}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-right text-[13px] py-4">
+                                {new Date(expense.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}, {new Date(expense.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-10 text-slate-400">No expense data available.</div>
+                    )}
+                  </TabsContent>
 
-              <TabsContent value="document" className="mt-6">
-                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
-                  Document data will be integrated here.
-                </div>
-              </TabsContent>
+                  <TabsContent value="document" className="mt-0 outline-none">
+                    {childData?.documents?.length > 0 ? (
+                      <Table className="min-w-[600px]">
+                        <TableHeader>
+                          <TableRow className="border-none hover:bg-transparent">
+                            <TableHead className="font-semibold text-slate-500 h-10">Title</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Category</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">File</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-right">Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {childData.documents.map((doc: any) => (
+                            <TableRow key={doc.id} className="border-none hover:bg-black/5">
+                              <TableCell className="font-medium text-slate-600 py-4">{doc.title}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">{doc.category}</TableCell>
+                              <TableCell className="text-center py-4">
+                                {doc.file ? (
+                                  <a href={doc.file} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-[13px] font-medium">
+                                    View File
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-400 text-[13px]">N/A</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-right text-[13px] py-4">
+                                {new Date(doc.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}, {new Date(doc.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-10 text-slate-400">No documents found.</div>
+                    )}
+                  </TabsContent>
 
-              <TabsContent value="milestone" className="mt-6">
-                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
-                  Milestone data will be integrated here.
-                </div>
-              </TabsContent>
+                  <TabsContent value="milestone" className="mt-0 outline-none">
+                    {childData?.milestones?.length > 0 ? (
+                      <Table className="min-w-[600px]">
+                        <TableHeader>
+                          <TableRow className="border-none hover:bg-transparent">
+                            <TableHead className="font-semibold text-slate-500 h-10">Title</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">child</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Photo</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-right">Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {childData.milestones.map((milestone: any) => (
+                            <TableRow key={milestone.id} className="border-none hover:bg-black/5">
+                              <TableCell className="font-medium text-slate-600 py-4">{milestone.title}</TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">Activity</TableCell> {/* Assuming child/category field mapping based on image */}
+                              <TableCell className="text-center py-4">
+                                {milestone.photo ? (
+                                  <a href={milestone.photo} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-[13px] font-medium inline-flex items-center justify-center">
+                                    <Avatar className="h-8 w-8 rounded-md mr-2">
+                                      <AvatarImage src={milestone.photo} className="object-cover" />
+                                      <AvatarFallback className="rounded-md">Img</AvatarFallback>
+                                    </Avatar>
+                                    View
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-400 text-[13px]">N/A</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-right text-[13px] py-4">
+                                {new Date(milestone.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}, {new Date(milestone.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-10 text-slate-400">No milestones shared yet.</div>
+                    )}
+                  </TabsContent>
 
-              <TabsContent value="schedule" className="mt-6">
-                <div className="text-center py-10 text-slate-400 border border-dashed rounded-xl">
-                  Schedule data will be integrated here.
+                  <TabsContent value="schedule" className="mt-0 outline-none">
+                    {childData?.schedules?.length > 0 ? (
+                      <Table className="min-w-[800px]">
+                        <TableHeader>
+                          <TableRow className="border-none hover:bg-transparent">
+                            <TableHead className="font-semibold text-slate-500 h-10">Title</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Date</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Start time</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Category</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-center">Image</TableHead>
+                            <TableHead className="font-semibold text-slate-500 h-10 text-right">Creator</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {childData.schedules.map((schedule: any) => (
+                            <TableRow key={schedule.id} className="border-none hover:bg-black/5">
+                              <TableCell className="font-medium text-slate-600 py-4">{schedule.title}</TableCell>
+                              <TableCell className="text-slate-500 text-center text-[13px] py-4">
+                                {new Date(schedule.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}, {new Date(schedule.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-center py-4 text-[13px]">
+                                {new Date(`2000-01-01T${schedule.start_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '.')}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-center py-4">{schedule.category}</TableCell>
+                              <TableCell className="text-center py-4">
+                                {schedule.image || schedule.photo ? (
+                                  <a href={schedule.image || schedule.photo} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-[13px] font-medium inline-flex items-center justify-center">
+                                    <Avatar className="h-8 w-8 rounded-md mr-2">
+                                      <AvatarImage src={schedule.image || schedule.photo} className="object-cover" />
+                                      <AvatarFallback className="rounded-md">Img</AvatarFallback>
+                                    </Avatar>
+                                    View
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-400 text-[13px]">N/A</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-slate-500 text-right py-4">{schedule.creator_name || "Activity"}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center py-10 text-slate-400">No schedules found.</div>
+                    )}
+                  </TabsContent>
                 </div>
-              </TabsContent>
+              )}
             </Tabs>
           </div>
         </CardContent>
       </Card>
 
       {/* Chat Messages Section */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <CardContent className="p-8 space-y-6">
-          <h3 className="text-lg font-semibold text-slate-800">Chat messages</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
-              <span className="text-sm font-medium text-slate-600">Ai chat</span>
+      <Card className="border-none shadow-[0px_4px_20px_rgba(0,0,0,0.03)] rounded-3xl overflow-hidden bg-white mt-8">
+        <CardContent className="p-8 md:p-10 space-y-6">
+          <h3 className="text-xl font-bold text-slate-800">Chat messages</h3>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <span className="text-[14px] text-slate-600">Ai chat</span>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleExportAI}
-                className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium"
+                className="bg-[#F0F5FF] text-blue-600 border-none hover:bg-[#E1EDFF] h-9 px-4 text-[13px] font-medium rounded-lg"
               >
-                <Download className="h-3 w-3 mr-2" />
+                <Download className="h-3.5 w-3.5 mr-2" />
                 Export pdf
               </Button>
             </div>
-            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/30">
-              <span className="text-sm font-medium text-slate-600">Person chat</span>
+            
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[14px] text-slate-600">Person chat</span>
               {coParents.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   {coParents.map(cp => (
@@ -229,10 +440,10 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleExportCoparent(cp.id)}
-                      className="bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100 h-8 text-xs font-medium"
+                      className="bg-[#F0F5FF] text-blue-600 border-none hover:bg-[#E1EDFF] h-9 px-4 text-[13px] font-medium rounded-lg"
                     >
-                      <Download className="h-3 w-3 mr-2" />
-                      Chat with {cp.username} (PDF)
+                      <Download className="h-3.5 w-3.5 mr-2" />
+                      Export pdf
                     </Button>
                   ))}
                 </div>

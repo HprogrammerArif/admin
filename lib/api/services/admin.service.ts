@@ -83,9 +83,11 @@ export interface ContentInfo {
 }
 
 export interface AIPrompt {
+  id: number;
   name: string;
-  prompt: string;
-  description?: string;
+  prompt_text: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const adminService = {
@@ -153,7 +155,9 @@ export const adminService = {
   },
 
   updateAboutInfo: async (id: number, data: FormData | any): Promise<ContentInfo> => {
-    const response = await api.put<ContentInfo>(`about/admin/about-info/${id}/`, data);
+    const response = await api.put<ContentInfo>(`about/admin/about-info/${id}/`, data, {
+      headers: data instanceof FormData ? { 'Content-Type': undefined } : {}
+    });
     return response.data;
   },
 
@@ -163,7 +167,9 @@ export const adminService = {
   },
 
   updateOnboardingInfo: async (id: number, data: FormData | any): Promise<ContentInfo> => {
-    const response = await api.put<ContentInfo>(`about/admin/onboarding-info/${id}/`, data);
+    const response = await api.put<ContentInfo>(`about/admin/onboarding-info/${id}/`, data, {
+      headers: data instanceof FormData ? { 'Content-Type': undefined } : {}
+    });
     return response.data;
   },
 
@@ -180,6 +186,11 @@ export const adminService = {
 
   deleteAIPrompt: async (name: string): Promise<void> => {
     await api.delete(`chat/prompts/${name}/`);
+  },
+
+  updateAIPrompt: async (name: string, data: { name: string, prompt_text: string }): Promise<AIPrompt> => {
+    const response = await api.put<AIPrompt>(`chat/prompts/${name}/`, data);
+    return response.data;
   },
 
   exportAIChat: async (userId: string | number): Promise<void> => {

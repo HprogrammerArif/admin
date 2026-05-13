@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Pencil, Download, Search, Loader2 } from "lucide-react";
 import { adminService, AIPrompt } from "@/lib/api/services/admin.service";
 import { toast } from "sonner";
@@ -12,18 +14,25 @@ export default function ChatPage() {
   const [prompts, setPrompts] = useState<AIPrompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchUserId, setSearchUserId] = useState("");
+  
+  // Edit State
+  const [editingPrompt, setEditingPrompt] = useState<AIPrompt | null>(null);
+  const [editPromptText, setEditPromptText] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const fetchPrompts = async () => {
+    setLoading(true);
+    try {
+      const data = await adminService.getAIPrompts();
+      setPrompts(data || []);
+    } catch (error) {
+      console.error("Error fetching prompts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchPrompts = async () => {
-      try {
-        const data = await adminService.getAIPrompts();
-        setPrompts(data || []);
-      } catch (error) {
-        console.error("Error fetching prompts:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPrompts();
   }, []);
 
@@ -42,7 +51,32 @@ export default function ChatPage() {
     }
   };
 
-  if (loading) {
+  const handleEditClick = (prompt: AIPrompt) => {
+    setEditingPrompt(prompt);
+    setEditPromptText(prompt.prompt_text || "");
+  };
+
+  const handleSave = async () => {
+    if (!editingPrompt) return;
+    
+    setSaving(true);
+    try {
+      await adminService.updateAIPrompt(editingPrompt.name, {
+        name: editingPrompt.name,
+        prompt_text: editPromptText
+      });
+      toast.success(`${editingPrompt.name} updated successfully!`);
+      await fetchPrompts();
+      setEditingPrompt(null);
+    } catch (error) {
+      console.error("Error updating prompt:", error);
+      toast.error("Failed to update AI Prompt.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading && prompts.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -59,20 +93,25 @@ export default function ChatPage() {
           <CardContent className="p-8 space-y-6">
             {prompts.map((prompt, index) => (
               <div key={index} className="flex items-center justify-between pb-6 border-b border-slate-50 last:border-0 last:pb-0">
-                <div className="grid grid-cols-2 gap-20">
+                <div className="grid grid-cols-2 gap-20 flex-1 pr-10">
                   <div>
                     <div className="text-xs text-slate-400 font-medium uppercase mb-1">Name</div>
                     <div className="text-sm text-slate-600 font-medium">{prompt.name}</div>
                   </div>
                   <div>
                     <div className="text-xs text-slate-400 font-medium uppercase mb-1">Description</div>
-                    <div className="text-sm text-slate-600 font-medium truncate max-w-[300px]">
-                      {prompt.prompt?.substring(0, 50) || "No prompt content available"}...
+                    <div className="text-sm text-slate-600 font-medium truncate max-w-[400px]">
+                      {prompt.prompt_text?.substring(0, 80) || "No prompt content available"}...
                     </div>
 
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium px-4 rounded-lg">
+                <Button 
+                  onClick={() => handleEditClick(prompt)}
+                  variant="outline" 
+                  size="sm" 
+                  className="bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100 h-8 text-xs font-medium px-4 rounded-lg flex-shrink-0"
+                >
                   <Pencil className="h-3 w-3 mr-2" />
                   Edit
                 </Button>
@@ -131,7 +170,42 @@ export default function ChatPage() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Edit Prompt Dialog */}
+      <Dialog open={!!editingPrompt} onOpenChange={(open) => !open && setEditingPrompt(null)}>
+        <DialogContent className="max-w-5xl p-0 overflow-hidden bg-slate-50">
+          <DialogHeader className="px-8 py-6 bg-white border-b border-slate-100">
+            <DialogTitle>Edit Prompt: {editingPrompt?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="px-8 py-6">
+            <div className="space-y-3">
+              <label className="text-sm font-semibold text-slate-700">Prompt Text</label>
+              <Textarea 
+                value={editPromptText}
+                onChange={(e) => setEditPromptText(e.target.value)}
+                className="min-h-[300px] font-mono text-sm leading-relaxed p-4 bg-white border-slate-200 shadow-sm focus-visible:ring-blue-500"
+                placeholder="Enter prompt instructions..."
+              />
+              <p className="text-xs text-slate-400">
+                This text acts as the system instruction for the AI model. Be clear and specific.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="px-8 py-6 bg-white border-t border-slate-100">
+            <Button variant="outline" onClick={() => setEditingPrompt(null)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={saving}
+              className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px]"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-
+
