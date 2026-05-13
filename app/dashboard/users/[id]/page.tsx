@@ -94,7 +94,7 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+    <div className="space-y-6 pb-10">
       <button 
         onClick={() => router.back()}
         className="flex items-center text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors mb-4"

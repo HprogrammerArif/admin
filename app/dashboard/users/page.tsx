@@ -129,7 +129,7 @@ const UsersPage = () => {
   );
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-800">Users</h1>
         <div className="relative w-96">

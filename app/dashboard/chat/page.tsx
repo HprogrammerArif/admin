@@ -85,7 +85,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+    <div className="space-y-6 pb-10">
       {/* Ai prompts Section */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold text-slate-800 px-1">Ai prompts</h2>
