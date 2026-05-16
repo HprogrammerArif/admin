@@ -159,6 +159,7 @@ const UsersPage = () => {
                   </TableHead>
                   <TableHead className="font-semibold text-slate-700">User</TableHead>
                   <TableHead className="font-semibold text-slate-700 text-center">Status</TableHead>
+                  <TableHead className="font-semibold text-slate-700 text-center">Subscription</TableHead>
                   <TableHead className="font-semibold text-slate-700">Join date</TableHead>
                   <TableHead className="font-semibold text-slate-700">Last log in</TableHead>
                   <TableHead className="font-semibold text-slate-700 text-right pr-6">Action</TableHead>
@@ -190,6 +191,14 @@ const UsersPage = () => {
                         className={`${user.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} border-none font-normal px-3 py-0.5 rounded-full`}
                       >
                         {user.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge 
+                        variant="secondary" 
+                        className={`${user.is_subscribed ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'} border-none font-normal px-3 py-0.5 rounded-full capitalize`}
+                      >
+                        {user.is_subscribed && user.current_plan ? user.current_plan.name : "Free"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-slate-600 font-normal">

@@ -108,6 +108,12 @@ export default function NewUsersPage({ users: initialUsers }: { users: User[] })
           View all
         </Link>
       </div>
+      <div className="bg-slate-50/80 border-b border-slate-100 py-3 px-6 flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <div className="w-1/3">User Info</div>
+        <div className="w-1/4 flex justify-center">Status & Plan</div>
+        <div className="w-1/4 flex justify-end">Join Date</div>
+        <div className="w-12"></div>
+      </div>
       <div className="divide-y divide-slate-100">
         {users?.slice(0, 5).map((user) => (
           <div key={user.id} className="p-4 px-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
@@ -123,12 +129,18 @@ export default function NewUsersPage({ users: initialUsers }: { users: User[] })
                 <p className="text-sm text-slate-500">{user.email}</p>
               </div>
             </div>
-            <div className="w-1/4 flex justify-center">
+            <div className="w-1/4 flex justify-center space-x-2">
               <Badge 
                 variant="secondary" 
                 className={`${user.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} border-none px-3 font-normal rounded-full`}
               >
                 {user.is_active ? "Active" : "Inactive"}
+              </Badge>
+              <Badge 
+                variant="secondary" 
+                className={`${user.is_subscribed ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'} border-none px-3 font-normal rounded-full capitalize`}
+              >
+                {user.is_subscribed && user.current_plan ? user.current_plan.name : "Free"}
               </Badge>
             </div>
             <div className="w-1/4 flex justify-end text-sm text-slate-500">

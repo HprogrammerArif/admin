@@ -28,6 +28,14 @@ export interface User {
   is_superuser: boolean;
   date_joined: string;
   last_login: string | null;
+  is_subscribed?: boolean;
+  current_plan?: {
+    id: number;
+    name: string;
+    display_name: string;
+    price: string;
+    end_date: string;
+  } | null;
 }
 
 export interface Child {

@@ -212,10 +212,10 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
             <Tabs defaultValue="expanse" className="w-full">
               <TabsList className="bg-transparent border-b border-slate-200 rounded-none w-full justify-start h-auto p-0 space-x-8 mb-6">
                 {[
-                  { id: "expanse", label: "Expanse" },
+                  { id: "expanse", label: "Expense" },
                   { id: "document", label: "Document" },
                   { id: "milestone", label: "Milestone" },
-                  { id: "schedule", label: "Shedule" }
+                  { id: "schedule", label: "Schedule" }
                 ].map((tab) => (
                   <TabsTrigger 
                     key={tab.id}
