@@ -125,6 +125,7 @@ const UsersPage = () => {
 
   const filteredUsers = users.filter(user => 
     user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -172,12 +173,12 @@ const UsersPage = () => {
                     <TableCell>
                       <Link href={`/dashboard/users/${user.id}`} className="flex items-center space-x-3 cursor-pointer">
                         <Avatar className="h-10 w-10 border border-slate-100">
-                          <AvatarImage src={`https://i.pravatar.cc/150?u=${user.id}`} />
-                          <AvatarFallback>{user.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage src={user.profile?.avatar || undefined} />
+                          <AvatarFallback>{(user.profile?.full_name || user.username || "Us").substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
-                            {user.username || "Anonymous"}
+                            {user.profile?.full_name || user.username || "Anonymous"}
                           </div>
                           <div className="text-xs text-slate-500">{user.email}</div>
                         </div>
@@ -324,7 +325,7 @@ const UsersPage = () => {
           <DialogHeader>
             <DialogTitle className="text-red-600">Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete user <strong>{selectedUser?.username}</strong>? This action cannot be undone.
+              Are you sure you want to delete user <strong>{selectedUser?.profile?.full_name || selectedUser?.username}</strong>? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex space-x-2 justify-end pt-4">

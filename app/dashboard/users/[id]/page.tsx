@@ -108,17 +108,17 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           {/* User Section */}
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-slate-800">User</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-6 items-start">
               <div className="flex items-center space-x-4 col-span-2">
                 <Avatar className="h-14 w-14 border border-slate-100 shadow-sm">
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback>{user?.full_name?.charAt(0) || user?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={user?.profile?.avatar || user?.avatar} />
+                  <AvatarFallback>{(user?.profile?.full_name || user?.username || "Us")?.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-slate-900 text-[15px]">{user?.full_name || user?.username}</span>
+                    <span className="font-bold text-slate-900 text-[15px]">{user?.profile?.full_name || user?.username}</span>
                     <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 h-auto border-none font-medium">
-                      {user?.role || "Father"}
+                      {user?.profile?.role || user?.role || "Father"}
                     </Badge>
                   </div>
                   <div className="text-[13px] text-blue-500">{user?.email}</div>
@@ -126,12 +126,24 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
               </div>
               <div className="flex flex-col">
                 <span className="text-[12px] text-slate-500 mb-1">Number</span>
-                <span className="text-[13px] text-slate-500">{user?.phone_number || "N/A"}</span>
+                <span className="text-[13px] text-slate-500">{user?.profile?.phone_number || user?.phone_number || "N/A"}</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[12px] text-slate-500 mb-1">Join date</span>
                 <span className="text-[13px] text-slate-500">
                   {user?.date_joined ? new Date(user.date_joined).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "N/A"}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] text-slate-500 mb-1">Earnings</span>
+                <span className="text-[13px] text-slate-500 font-medium">
+                  {user?.profile?.total_earnings !== undefined ? `${user?.profile?.total_earnings} ${user?.profile?.currency || 'USD'}` : "N/A"}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[12px] text-slate-500 mb-1">Referral Code</span>
+                <span className="text-[13px] text-slate-500 font-medium">
+                  {user?.profile?.referral_code || "N/A"}
                 </span>
               </div>
             </div>
@@ -146,14 +158,14 @@ const UserDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
                   <div key={cp.id} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
                     <div className="flex items-center space-x-4 col-span-2">
                       <Avatar className="h-14 w-14 border border-slate-100 shadow-sm">
-                        <AvatarImage src={cp.avatar} />
-                        <AvatarFallback>{cp.full_name?.charAt(0) || cp.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={cp.profile?.avatar || cp.avatar} />
+                        <AvatarFallback>{(cp.profile?.full_name || cp.username || "Us")?.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-bold text-slate-900 text-[15px]">{cp.full_name || cp.username}</span>
+                          <span className="font-bold text-slate-900 text-[15px]">{cp.profile?.full_name || cp.username}</span>
                           <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 h-auto border-none font-medium">
-                            {cp.role || "Mother"}
+                            {cp.profile?.role || cp.role || "Mother"}
                           </Badge>
                         </div>
                         <div className="text-[13px] text-blue-500">{cp.email}</div>

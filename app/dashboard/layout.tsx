@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { adminService } from "@/lib/api/services/admin.service";
 import { 
   LayoutDashboard, 
   Users, 
@@ -55,8 +56,16 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!isInitializing && !isAuthenticated) {
       router.push("/");
+    } else if (isAuthenticated && user?.id) {
+      // Fetch latest profile info to keep sidebar updated
+      adminService.getCurrentUser().then(updatedUser => {
+        const { token, login } = useAuthStore.getState();
+        if (token) {
+          login(updatedUser, token);
+        }
+      }).catch(err => console.error("Failed to fetch current user", err));
     }
-  }, [isAuthenticated, isInitializing, router]);
+  }, [isAuthenticated, isInitializing, router, user?.id]);
 
   if (isInitializing || !isAuthenticated) {
     return (
@@ -134,14 +143,14 @@ export default function DashboardLayout({
             onClick={handleLogout}
           >
             <Avatar className="w-8 h-8 flex-shrink-0">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${user?.id}`} alt={user?.username} />
+              <AvatarImage src={user?.profile?.avatar || undefined} alt={user?.profile?.full_name || user?.username} />
               <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
-                {user?.username?.charAt(0).toUpperCase() || "A"}
+                {(user?.profile?.full_name || user?.username || "Ad")?.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-[13px] font-semibold text-slate-900 truncate leading-none mb-0.5">
-                {user?.username}
+                {user?.profile?.full_name || user?.username}
               </p>
               <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
             </div>
@@ -185,16 +194,16 @@ export default function DashboardLayout({
                 <div className="flex items-center space-x-2 cursor-pointer hover:bg-slate-50 rounded-xl px-2 py-1.5 transition-colors">
                   <Avatar className="w-8 h-8 ring-2 ring-slate-100">
                     <AvatarImage
-                      src={`https://i.pravatar.cc/150?u=${user?.id}`}
-                      alt={user?.username}
+                      src={user?.profile?.avatar || undefined}
+                      alt={user?.profile?.full_name || user?.username}
                     />
                     <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
-                      {user?.username?.charAt(0).toUpperCase() || "A"}
+                      {(user?.profile?.full_name || user?.username || "Ad")?.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden sm:block">
                     <p className="text-[13px] font-semibold text-slate-900 leading-none mb-0.5">
-                      {user?.username}
+                      {user?.profile?.full_name || user?.username}
                     </p>
                     <p className="text-[11px] text-slate-400 leading-none">Administrator</p>
                   </div>
@@ -203,18 +212,18 @@ export default function DashboardLayout({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52 mt-1 shadow-lg border-slate-100 rounded-xl p-1">
                 <DropdownMenuLabel className="font-normal px-2 py-2">
-                  <p className="text-sm font-semibold text-slate-900">{user?.username}</p>
+                  <p className="text-sm font-semibold text-slate-900">{user?.profile?.full_name || user?.username}</p>
                   <p className="text-xs text-slate-400">{user?.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="my-1" />
-                <DropdownMenuItem className="cursor-pointer rounded-lg px-2 py-2 text-[13px]">
+                <DropdownMenuItem 
+                  className="cursor-pointer rounded-lg px-2 py-2 text-[13px]"
+                  onClick={() => router.push(`/dashboard/users/${user?.id}`)}
+                >
                   <User className="mr-2 h-4 w-4 text-slate-400" />
                   My Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer rounded-lg px-2 py-2 text-[13px]">
-                  <Settings className="mr-2 h-4 w-4 text-slate-400" />
-                  Settings
-                </DropdownMenuItem>
+               
                 <DropdownMenuSeparator className="my-1" />
                 <DropdownMenuItem
                   className="cursor-pointer rounded-lg px-2 py-2 text-[13px] text-red-600 focus:text-red-600 focus:bg-red-50"

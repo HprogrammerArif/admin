@@ -11,6 +11,18 @@ export interface User {
   gender?: string;
   phone_number?: string | null;
   avatar?: string;
+  profile?: {
+    id: number;
+    full_name?: string | null;
+    role?: string;
+    gender?: string;
+    phone_number?: string | null;
+    address?: string | null;
+    avatar?: string | null;
+    referral_code?: string;
+    total_earnings?: number;
+    currency?: string;
+  };
   is_active: boolean;
   is_staff: boolean;
   is_superuser: boolean;
@@ -115,6 +127,11 @@ export const adminService = {
 
   getUserById: async (id: string | number): Promise<User> => {
     const response = await api.get<User>(`auth/admin/users/${id}/`);
+    return response.data;
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    const response = await api.get<User>('auth/admin/users/me/');
     return response.data;
   },
 

@@ -2,9 +2,14 @@ import { create } from 'zustand';
 import Cookies from 'js-cookie';
 
 interface User {
-  id: string;
+  id: string | number;
   email: string;
   username: string;
+  profile?: {
+    id?: number;
+    full_name?: string | null;
+    avatar?: string | null;
+  };
 }
 
 interface AuthState {

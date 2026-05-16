@@ -124,30 +124,7 @@ export default function DashboardPage() {
           icon={<UserCheck className="w-6 h-6" />}  
           iconColor="text-emerald-500 bg-emerald-50" 
         />
-        <UserCard 
-          title="Total Children" 
-          value={(dashboardStats?.total_children || 0).toLocaleString()} 
-          icon={<Baby className="w-6 h-6" />}  
-          iconColor="text-purple-500 bg-purple-50" 
-        />
-        <UserCard 
-          title="Messages Today" 
-          value={(dashboardStats?.today_total_messages || 0).toLocaleString()} 
-          icon={<BellRing className="w-6 h-6" />}  
-          iconColor="text-amber-500 bg-amber-50" 
-        />
-        <UserCard 
-          title="Monthly Expenses" 
-          value={`$${(dashboardStats?.current_month_expenses || 0).toLocaleString()}`} 
-          icon={<DollarSign className="w-6 h-6" />}  
-          iconColor="text-rose-500 bg-rose-50" 
-        />
-        <UserCard 
-          title="Upcoming Events (7d)" 
-          value={(dashboardStats?.upcoming_schedules_7days || 0).toLocaleString()} 
-          icon={<CalendarDays className="w-6 h-6" />}  
-          iconColor="text-indigo-500 bg-indigo-50" 
-        />
+       
       </div>
 
      

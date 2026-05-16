@@ -114,12 +114,12 @@ export default function NewUsersPage({ users: initialUsers }: { users: User[] })
             <div className="flex items-center space-x-4 w-1/3">
               <Link href={`/dashboard/users/${user.id}`}>
                 <Avatar className="w-10 h-10 border border-slate-200 hover:opacity-80 transition-opacity">
-                  <AvatarImage src={`https://i.pravatar.cc/150?u=${user.id}`} alt={user.username} />
-                  <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={user.profile?.avatar || undefined} alt={user.profile?.full_name || user.username} />
+                  <AvatarFallback>{(user.profile?.full_name || user.username || "Us").substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </Link>
               <div>
-                <p className="text-sm font-medium text-slate-900">{user.username || "User"}</p>
+                <p className="text-sm font-medium text-slate-900">{user.profile?.full_name || user.username || "User"}</p>
                 <p className="text-sm text-slate-500">{user.email}</p>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function NewUsersPage({ users: initialUsers }: { users: User[] })
           <DialogHeader>
             <DialogTitle className="text-red-600">Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete user <strong>{selectedUser?.username}</strong>? This action cannot be undone.
+              Are you sure you want to delete user <strong>{selectedUser?.profile?.full_name || selectedUser?.username}</strong>? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex space-x-2 justify-end pt-4">
