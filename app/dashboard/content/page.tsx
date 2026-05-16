@@ -7,6 +7,7 @@ import { Pencil, Loader2, Save } from "lucide-react";
 import { adminService, ContentInfo } from "@/lib/api/services/admin.service";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import {
   Dialog,
   DialogContent,
@@ -145,7 +146,7 @@ export default function ContentPage() {
                 </Button>
               </div>
               <div className="text-sm text-slate-500 leading-relaxed max-w-4xl markdown-content prose prose-slate prose-sm max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                   {item.content || ""}
                 </ReactMarkdown>
               </div>
@@ -187,7 +188,7 @@ export default function ContentPage() {
                   <h3 className="text-lg font-semibold text-slate-800">{item.title}</h3>
                 </div>
                 <div className="text-sm text-slate-500 markdown-content prose prose-slate prose-sm max-w-none flex-1">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                     {item.description || ""}
                   </ReactMarkdown>
                 </div>
@@ -208,7 +209,7 @@ export default function ContentPage() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
-        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-6xl sm:max-w-6xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit {editingItem?.title || editingItem?.name}</DialogTitle>
           </DialogHeader>
