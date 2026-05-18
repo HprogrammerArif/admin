@@ -44,6 +44,15 @@ export interface Child {
   photo: string;
 }
 
+export interface AppNotification {
+  id: number;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface UserDetail {
   user: User;
   co_parents: User[];
@@ -140,6 +149,11 @@ export const adminService = {
 
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get<User>('auth/admin/users/me/');
+    return response.data;
+  },
+
+  getNotifications: async (): Promise<AppNotification[]> => {
+    const response = await api.get<AppNotification[]>('core/admin/notifications/');
     return response.data;
   },
 

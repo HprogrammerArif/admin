@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { adminService } from "@/lib/api/services/admin.service";
+import { adminService, AppNotification } from "@/lib/api/services/admin.service";
 import { 
   LayoutDashboard, 
   Users, 
@@ -47,6 +47,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isAuthenticated, initialize, logout } = useAuthStore();
   const [isInitializing, setIsInitializing] = useState(true);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useEffect(() => {
     initialize();
@@ -64,6 +65,11 @@ export default function DashboardLayout({
           login(updatedUser, token);
         }
       }).catch(err => console.error("Failed to fetch current user", err));
+
+      // Fetch notifications
+      adminService.getNotifications().then(data => {
+        setNotifications(data || []);
+      }).catch(err => console.error("Failed to fetch notifications", err));
     }
   }, [isAuthenticated, isInitializing, router, user?.id]);
 
@@ -177,14 +183,51 @@ export default function DashboardLayout({
 
           <div className="flex items-center space-x-2">
             {/* Notification Bell */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative text-slate-500 hover:bg-slate-50 rounded-xl h-9 w-9"
-            >
-              <Bell className="w-[18px] h-[18px]" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white"></span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative text-slate-500 hover:bg-slate-50 rounded-xl h-9 w-9"
+                >
+                  <Bell className="w-[18px] h-[18px]" />
+                  {notifications.some(n => !n.is_read) && (
+                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white"></span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 mt-1 shadow-lg border-slate-100 rounded-xl p-1">
+                <DropdownMenuLabel className="font-semibold px-3 py-2 flex justify-between items-center">
+                  <span>Notifications</span>
+                  <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                    {notifications.length} new
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-slate-500">
+                      No notifications
+                    </div>
+                  ) : (
+                    notifications.map(notification => (
+                      <DropdownMenuItem key={notification.id} className="p-3 cursor-pointer focus:bg-slate-50 border-b border-slate-50 last:border-0 rounded-none items-start">
+                        <div className="flex flex-col space-y-1 w-full">
+                          <div className="flex justify-between items-start">
+                            <span className="text-sm font-semibold text-slate-800">{notification.title}</span>
+                            {!notification.is_read && <span className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></span>}
+                          </div>
+                          <span className="text-xs text-slate-500 line-clamp-2">{notification.message}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {new Date(notification.created_at).toLocaleDateString()} {new Date(notification.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="h-6 w-[1px] bg-slate-200 mx-1"></div>
 
