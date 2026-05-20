@@ -60,6 +60,7 @@ const SubscribersPage = () => {
   const [selectedSubscription, setSelectedSubscription] =
     useState<UserSubscription | null>(null);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchSubscriptions = async () => {
@@ -171,13 +172,38 @@ const SubscribersPage = () => {
     setIsUpgradeDialogOpen(true);
   };
 
-  const handleUpgradeSubmit = () => {
+  const handleUpgradeSubmit = async () => {
     if (!selectedSubscription || !selectedPlan) return;
-    // For now, just show a toast — backend PUT endpoint can be added later
-    toast.success(
-      `Plan upgrade to "${selectedPlan}" requested for ${selectedSubscription.user_details.full_name || selectedSubscription.user_details.username}`
-    );
-    setIsUpgradeDialogOpen(false);
+
+    setIsSubmitting(true);
+    try {
+      let body: { user: number; plan_slug?: string; is_active: boolean };
+
+      if (selectedPlan === "free") {
+        // Downgrade to free: just pass user + is_active false
+        body = { user: selectedSubscription.user, is_active: false };
+      } else {
+        // Upgrade to monthly or yearly
+        body = { user: selectedSubscription.user, plan_slug: selectedPlan, is_active: true };
+      }
+
+      const updated = await adminService.updateUserSubscription(selectedSubscription.id, body);
+
+      // Update local state
+      setSubscriptions((prev) =>
+        prev.map((s) => (s.id === selectedSubscription.id ? updated : s))
+      );
+
+      toast.success(
+        `Plan updated to "${selectedPlan}" for ${selectedSubscription.user_details.full_name || selectedSubscription.user_details.username}`
+      );
+      setIsUpgradeDialogOpen(false);
+    } catch (error) {
+      console.error("Upgrade error:", error);
+      toast.error("Failed to update subscription");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const filterTabs: { key: FilterType; label: string; count: number; icon: React.ReactNode; color: string }[] = [
@@ -472,16 +498,21 @@ const SubscribersPage = () => {
             <Button
               variant="outline"
               onClick={() => setIsUpgradeDialogOpen(false)}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpgradeSubmit}
-              disabled={!selectedPlan}
+              disabled={!selectedPlan || isSubmitting}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <ArrowUpCircle className="w-4 h-4 mr-1" />
-              Confirm Upgrade
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <ArrowUpCircle className="w-4 h-4 mr-1" />
+              )}
+              {isSubmitting ? "Updating..." : "Confirm Upgrade"}
             </Button>
           </DialogFooter>
         </DialogContent>

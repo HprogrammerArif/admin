@@ -297,6 +297,17 @@ export const adminService = {
   getUserSubscriptions: async (): Promise<UserSubscription[]> => {
     const response = await api.get<UserSubscription[]>('core/admin/user-subscriptions/');
     return response.data;
+  },
+
+  updateUserSubscription: async (
+    subscriptionId: number,
+    data: { user: number; plan_slug?: string; is_active: boolean }
+  ): Promise<UserSubscription> => {
+    const response = await api.put<UserSubscription>(
+      `core/admin/user-subscriptions/${subscriptionId}/`,
+      data
+    );
+    return response.data;
   }
 };
 
