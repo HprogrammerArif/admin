@@ -119,6 +119,40 @@ export interface AIPrompt {
   updated_at?: string;
 }
 
+export interface SubscriptionUserDetails {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+  gender: string;
+  phone_number: string | null;
+  avatar: string | null;
+  date_joined: string;
+}
+
+export interface SubscriptionPlanDetails {
+  id: number;
+  name: string;
+  price: string;
+  duration_days: number;
+  is_active: boolean;
+  description: string;
+}
+
+export interface UserSubscription {
+  id: number;
+  user_details: SubscriptionUserDetails;
+  plan_details: SubscriptionPlanDetails | null;
+  start_date: string | null;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  user: number;
+  plan: number | null;
+}
+
 export const adminService = {
   // Dashboard & Stats
   getUsers: async (): Promise<UsersResponse> => {
@@ -257,6 +291,11 @@ export const adminService = {
   // Subscribers
   getTotalSubscribers: async (): Promise<{ total_subscribers: number }> => {
     const response = await api.get<{ total_subscribers: number }>('core/admin/total-subscriber/');
+    return response.data;
+  },
+
+  getUserSubscriptions: async (): Promise<UserSubscription[]> => {
+    const response = await api.get<UserSubscription[]>('core/admin/user-subscriptions/');
     return response.data;
   }
 };
