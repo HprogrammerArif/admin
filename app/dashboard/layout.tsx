@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 const sidebarLinks = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Users", href: "/dashboard/users", icon: Users },
+  { name: "Subscribers", href: "/dashboard/subscribers", icon: User },
   { name: "Content", href: "/dashboard/content", icon: FileText },
   { name: "AI Chat", href: "/dashboard/chat", icon: MessageSquare },
 ];

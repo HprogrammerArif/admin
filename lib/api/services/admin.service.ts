@@ -252,6 +252,12 @@ export const adminService = {
     document.body.appendChild(link);
     link.click();
     link.remove();
+  },
+
+  // Subscribers
+  getTotalSubscribers: async (): Promise<{ total_subscribers: number }> => {
+    const response = await api.get<{ total_subscribers: number }>('core/admin/total-subscriber/');
+    return response.data;
   }
 };
 

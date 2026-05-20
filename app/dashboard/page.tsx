@@ -51,6 +51,7 @@ const colorMap: Record<string, { color: string; bg: string }> = {
 export default function DashboardPage() {
   const [userStats, setUserStats] = useState({ total_user: 0, active_user: 0, inactive_user: 0 });
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [totalSubscribers, setTotalSubscribers] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,10 +69,11 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersData, activityData, dashData] = await Promise.all([
+        const [usersData, activityData, dashData, subscriberData] = await Promise.all([
           adminService.getUsers(),
           adminService.getRecentActivity(),
-          adminService.getDashboardData(period)
+          adminService.getDashboardData(period),
+          adminService.getTotalSubscribers()
         ]);
 
         setUserStats({
@@ -80,6 +82,7 @@ export default function DashboardPage() {
           inactive_user: usersData.inactive_user
         });
         setDashboardStats(dashData);
+        setTotalSubscribers(subscriberData.total_subscribers || 0);
         setUsers(usersData.users || []);
         setRecentActivity(activityData || []);
       } catch (error) {
@@ -121,6 +124,14 @@ export default function DashboardPage() {
         <UserCard 
           title="Active Users" 
           value={(dashboardStats?.active_users || userStats.active_user).toLocaleString()} 
+          icon={<UserCheck className="w-6 h-6" />}  
+          iconColor="text-emerald-500 bg-emerald-50" 
+        />
+
+
+        <UserCard 
+          title="Subscribed Users" 
+          value={totalSubscribers.toLocaleString()} 
           icon={<UserCheck className="w-6 h-6" />}  
           iconColor="text-emerald-500 bg-emerald-50" 
         />
